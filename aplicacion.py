@@ -1,5 +1,26 @@
 # Datos ficticios de usuarios y deportistas
 import pandas as pd
+from dash import dcc, html, Input, Output, State, Dash, dash_table, callback
+import dash_bootstrap_components as dbc
+import re
+import plotly.express as px
+import dash_core_components as dcc
+import dash_html_components as html
+import datetime
+import xml.etree.ElementTree as ET
+import base64
+import tempfile
+import dash.exceptions
+import time
+import numpy as np
+import json
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import dash
+
+
+
+
 class Deportista:
     # Definición de la clase Deportista
     def __init__(self, nombre, apellido, edad, v_pc_atletismo, vam_atletismo, pmax, pc_ciclismo, pam, vc_natacion, fc_max_natacion,fc_max_atletismo,fc_max_ciclismo):
@@ -64,14 +85,7 @@ column_tooltips = {
 }
 
 # Función para procesar el archivo TCX
-from dash import dcc, html, Input, Output, State, Dash, dash_table
-import dash_bootstrap_components as dbc
-import re
-import plotly.express as px
-import dash_core_components as dcc
-import dash_html_components as html
-import datetime
-import xml.etree.ElementTree as ET
+
 
 def importar_archivo(contents):
     if contents is None:
@@ -183,22 +197,7 @@ def process_tcx_file(file_path):
 
     return laps_summary
 
-from dash import Input, Output, State, Dash, callback
-import base64
-import tempfile
-import dash.exceptions
-import time
-import dash_table
-import numpy as np
-import json
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import pandas as pd
-import datetime
+
 
 """
 import dash_core_components as dcc
@@ -212,6 +211,7 @@ import plotly.graph_objects as go
 import plotly.subplots as sp"""
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+server = app.server
 app.config.suppress_callback_exceptions = True
 app.layout = html.Div(
     [
@@ -1148,5 +1148,5 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
         return []
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
 
