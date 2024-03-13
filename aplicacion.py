@@ -266,7 +266,7 @@ def render_page_content(pathname):
             html.H2("Elige un atleta:"),
             dcc.Dropdown(
                 id='atletas-dropdown',
-                options=[{'label': f"{atleta['nombre']} {atleta['apellido']}", 'value': f"{atleta['nombre']} {atleta['apellido']}"} for atleta in juanperez_atletas],
+                options=[{'label': f"{atleta['nombre']} {atleta['apellido']}", 'value': f"{atleta['nombre']} {atleta['apellido']}"} for atleta in juanperez_df.to_dict('records')],
                 value=None,  # Valor inicial
                 multi=False  # Permite seleccionar múltiples atletas
             ),
@@ -303,38 +303,22 @@ def render_page_content(pathname):
         return analisis_entrenamientos, pathname
     elif pathname == "/tabla-zonas":
         tabla_zonas= html.Div([
-          dash_table.DataTable(
-              id='atletas-table',
-              columns=[
-                  {'name': col, 'id': col, 'deletable': False, 'renamable': False}
-                  for col in juanperez_df.columns
-              ],
-              data=juanperez_df.to_dict('records'),
-              editable=True,
-              row_deletable=True,
-              style_table={'overflowX': 'scroll'},
-              style_header={
-                  'fontWeight': 'bold',
-                  'fontSize': '16px'
-              },
-              style_cell={
-                  'textAlign': 'center',
-                  'font_size': '14px',
-                  'minWidth': '100px',
-                  'width': '100px',
-                  'whiteSpace': 'normal'
-              },
-              tooltip_data=[
-                  {
-                      column: {'value': column_tooltips.get(column, '')}
-                      for column in juanperez_df.columns
-                  }
-                  for _ in juanperez_df.to_dict('records')
-              ],
-              tooltip_duration=None  # Muestra el tooltip indefinidamente
-          ),
-
-          html.Button('Añadir atleta', id='editing-rows-button', n_clicks=0)
+            html.Div(id="tabla-zonas", children=[
+                dash_table.DataTable(
+                    id='atletas-table',
+                    columns=[{'name': col, 'id': col, 'deletable': True, 'renamable': False} for col in juanperez_df.columns],
+                    data=juanperez_df.to_dict('records'),
+                    editable=True,
+                    row_deletable=True,
+                    style_table={'overflowX': 'scroll'},
+                    style_header={'fontWeight': 'bold', 'fontSize': '16px'},
+                    style_cell={'textAlign': 'center', 'font_size': '14px', 'minWidth': '100px', 'width': '100px', 'whiteSpace': 'normal'},
+                    tooltip_data=[{column: {'value': column_tooltips.get(column, '')} for column in juanperez_df.columns} for _ in juanperez_df.to_dict('records')],
+                    tooltip_duration=None  # Muestra el tooltip indefinidamente
+                ),
+                html.Button('Añadir atleta', id='editing-rows-button', n_clicks=0),
+                html.Div(id="confirm-delete-modal-container"),
+            ])
         ])
         return tabla_zonas, pathname
     elif pathname == "/login":
@@ -492,39 +476,50 @@ def validate_registration(n_clicks, username, email, user_type, password, confir
     return ""
 
 #tabla zonas
-@callback(
+@app.callback(
     Output('atletas-table', 'data'),
     Input('editing-rows-button', 'n_clicks'),
-    Input('atletas-table', 'data_timestamp'),
     State('atletas-table', 'data'),
-    State('atletas-table', 'columns'),
-    prevent_initial_call=True)
-def update_table(n_clicks, timestamp, rows, columns):
+    prevent_initial_call=True
+)
+def update_table(n_clicks, rows):
     if n_clicks > 0:
-        new_atleta = {col: None for col in juanperez_df.columns}
-        juanperez_atletas.append(new_atleta)
-        rows.append({col['id']: '' for col in columns})
-        usuario1.atletas.append(new_atleta)
-    for row in rows:
-        if (row['fc_max_atletismo'] == None or row['fc_max_atletismo'] == '') and row['edad'] != "":
-            row['fc_max_atletismo'] = 220 - int(row['edad'])
-            row['fc_max_natacion'] = int(0.94*int(row['fc_max_atletismo']))
-            row['fc_max_ciclismo'] = int(0.96*int(row['fc_max_atletismo']))
-
-        # Actualizar los valores en juanperez_atletas a partir de las filas editadas
-        i = rows.index(row)  # Índice de la fila correspondiente en juanperez_atletas
-        atleta_data = juanperez_atletas[i]
-        for col in columns:
-            col_id = col['id']
-            atleta_data[col_id] = row[col_id]
-
+        new_atleta = {col: '' for col in juanperez_df.columns}
+        juanperez_df.loc[len(juanperez_df)] = [''] * len(juanperez_df.columns)
+        rows.append(new_atleta)
     return rows
+
+@app.callback(
+    Output('tabla-zonas', 'children'),
+    Input('atletas-table', 'data'),
+    State('atletas-table', 'data'),
+    prevent_initial_call=True
+)
+def update_juanperez_df(data, rows):
+    global juanperez_df
+    juanperez_df = pd.DataFrame(rows)
+    return html.Div([
+        dash_table.DataTable(
+            id='atletas-table',
+            columns=[{'name': col, 'id': col, 'deletable': True, 'renamable': False} for col in juanperez_df.columns],
+            data=juanperez_df.to_dict('records'),
+            editable=True,
+            row_deletable=True,
+            style_table={'overflowX': 'scroll'},
+            style_header={'fontWeight': 'bold', 'fontSize': '16px'},
+            style_cell={'textAlign': 'center', 'font_size': '14px', 'minWidth': '100px', 'width': '100px', 'whiteSpace': 'normal'},
+            tooltip_data=[{column: {'value': column_tooltips.get(column, '')} for column in juanperez_df.columns} for _ in juanperez_df.to_dict('records')],
+            tooltip_duration=None  # Muestra el tooltip indefinidamente
+        ),
+        html.Button('Añadir atleta', id='editing-rows-button', n_clicks=0)
+    ])
 
 @app.callback(
     Output('editing-rows-button', 'n_clicks'),
     Input('atletas-table', 'data'))
 def reset_n_clicks(rows):
     return 0
+
 
 
 #analisis entrenos
@@ -631,20 +626,19 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
             children.insert(0, html.Div(resumen_entrenamiento))
             tablas = []
             graficos = []
-            for atleta in usuario1.atletas:
-                if atleta['nombre'] == nombre and atleta['apellido'] == apellido:
+            for atleta in juanperez_df.values:
+                if atleta[0] == nombre and atleta[1] == apellido:
                     # Extraer los valores de PC_a, VAM, pmax, PC_c, PAM y FC_max del atleta
-                    pc_ciclismo = atleta['pc_ciclismo']
-                    PC_a = atleta['v_pc_atletismo']
-                    VAM = atleta['vam_atletismo']
-                    pmax = atleta['pam']
-                    PC_c = atleta['pc_ciclismo']
+                    PC_a = int(atleta[3])
+                    VAM = float(atleta[4])
+                    pmax = int(atleta[6])
+                    PC_c = int(atleta[5])
                     if tipo_entrenamiento == 'aguas_abiertas':
-                      FC_max = atleta['fc_max_natacion']
+                      FC_max = int(atleta[8])
                     elif tipo_entrenamiento == 'ciclismo':
-                      FC_max = atleta['fc_max_ciclismo']
+                      FC_max = int(atleta[9])
                     else:
-                      FC_max = atleta['fc_max_atletismo']
+                      FC_max = int(atleta[10])
 
             if zonas_analisis == 3:
                 zonas = ['Z0', 'Z1', 'Z2', 'Z3', 'MAX']
@@ -779,22 +773,22 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
               for i in range(len(zonas)):
                   zone_data.append({
                       'Zone': zonas[i],
-                      '% Lower Bound': str(int(power_zones[i]/pmax*100))+"%" if i != 0 else "",
-                      '% Upper Bound': str(int(power_zones[i + 1]/pmax*100))+"%" if i < (len(power_zones) - 2) else "",
-                      'Lower Bound': int(power_zones[i]) if i != 0 else "",
-                      'Upper Bound': int(power_zones[i + 1]) if i < (len(fc_zones) - 2) else "",
-                      'Time Spent': tiempo_total_Pot[i],
-                      'Background Color': paleta[i]
-                  })
-              # Agregar el estilo condicional para el color de fondo
-              table = dash_table.DataTable(
-                  columns=[
-                      {"name": "Zone", "id": "Zone"},
-                      {"name": "Percentage Lower Bound", "id": "Percentage Lower Bound"},
-                      {"name": "Percentage Upper Bound", "id": "Percentage Upper Bound"},
-                      {"name": "Lower Bound", "id": "Lower Bound"},
-                      {"name": "Upper Bound", "id": "Upper Bound"},
-                      {"name": "Time Spent", "id": "Time Spent"}
+                          'Percentage Lower Bound': str(int(power_zones[i]/pmax*100))+"%" if i != 0 else "",
+                          'Percentage Upper Bound': str(int(power_zones[i + 1]/pmax*100))+"%" if i < (len(fc_zones) - 2) else "",
+                          'Lower Bound': int(power_zones[i]) if i != 0 else "",
+                          'Upper Bound': int(power_zones[i + 1]) if i < (len(fc_zones) - 2) else "",
+                          'Time Spent': tiempo_total_Pot[i],
+                          'Background Color': paleta[i]
+                      })
+                      # Agregar el estilo condicional para el color de fondo
+                      table = dash_table.DataTable(
+                        columns=[
+                          {"name": "Zone", "id": "Zone"},
+                          {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
+                          {"name": "% Upper Bound", "id": "Percentage Upper Bound"},
+                          {"name": "Lower Bound", "id": "Lower Bound"},
+                          {"name": "Upper Bound", "id": "Upper Bound"},
+                          {"name": "Time Spent", "id": "Time Spent"}
                   ],
                   data=zone_data,
                    style_header={
