@@ -54,7 +54,7 @@ deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 280, 280, 90, 191, 191, 191
 deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 90, 185, 180, 175)
 deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 320, 310, 90, 188, 188, 188)
 
-deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 520, 90, 185, 180, 175)
+deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 90, 185, 180, 175)
 
 atletas_data = [deportista1.__dict__, deportista2.__dict__, deportista3.__dict__]
 
