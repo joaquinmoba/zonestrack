@@ -699,15 +699,15 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                         'Time Spent': tiempo_total_FC[i],
                         'Background Color': paleta[i]
                     })
-                # Agregar el estilo condicional para el color de fondo
-                table = dash_table.DataTable(
-                    columns=[
-                        {"name": "Zone", "id": "Zone"},
-                        {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
-                        {"name": "% Upper Bound", "id": "Percentage Upper Bound"},
-                        {"name": "Lower Bound", "id": "Lower Bound"},
-                        {"name": "Upper Bound", "id": "Upper Bound"},
-                        {"name": "Time Spent", "id": "Time Spent"}
+                    # Agregar el estilo condicional para el color de fondo
+                    table = dash_table.DataTable(
+                        columns=[
+                            {"name": "Zone", "id": "Zone"},
+                            {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
+                            {"name": "% Upper Bound", "id": "Percentage Upper Bound"},
+                            {"name": "Lower Bound", "id": "Lower Bound"},
+                            {"name": "Upper Bound", "id": "Upper Bound"},
+                            {"name": "Time Spent", "id": "Time Spent"}
                     ],
                     data=zone_data,
                      style_header={
@@ -780,8 +780,8 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                           'Time Spent': tiempo_total_Pot[i],
                           'Background Color': paleta[i]
                       })
-                      # Agregar el estilo condicional para el color de fondo
-                      table = dash_table.DataTable(
+                  # Agregar el estilo condicional para el color de fondo
+                  table = dash_table.DataTable(
                         columns=[
                           {"name": "Zone", "id": "Zone"},
                           {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
@@ -858,16 +858,16 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                           'Time Spent': tiempo_total_Pot[i],
                           'Background Color': paleta[i]
                       })
-                  # Agregar el estilo condicional para el color de fondo
-                  table = dash_table.DataTable(
-                      columns=[
+                      # Agregar el estilo condicional para el color de fondo
+                      table = dash_table.DataTable(
+                          columns=[
                           {"name": "Zone", "id": "Zone"},
                           {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
                           {"name": "% Upper Bound", "id": "Percentage Upper Bound"},
                           {"name": "Lower Bound", "id": "Lower Bound"},
                           {"name": "Upper Bound", "id": "Upper Bound"},
                           {"name": "Time Spent", "id": "Time Spent"}
-                      ],
+                          ],
                       data=zone_data,
                        style_header={
                         'backgroundColor': 'white',
