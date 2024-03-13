@@ -23,13 +23,12 @@ import dash
 
 class Deportista:
     # Definición de la clase Deportista
-    def __init__(self, nombre, apellido, edad, v_pc_atletismo, vam_atletismo, pmax, pc_ciclismo, pam, vc_natacion, fc_max_natacion,fc_max_atletismo,fc_max_ciclismo):
+    def __init__(self, nombre, apellido, edad, v_pc_atletismo, vam_atletismo, pc_ciclismo, pam, vc_natacion, fc_max_natacion,fc_max_atletismo,fc_max_ciclismo):
         self.nombre = nombre
         self.apellido = apellido
         self.edad = edad
         self.v_pc_atletismo = v_pc_atletismo
         self.vam_atletismo = vam_atletismo
-        self.pmax = pmax
         self.pc_ciclismo = pc_ciclismo
         self.pam = pam
         self.vc_natacion = vc_natacion
@@ -49,13 +48,17 @@ class Usuario:
         self.atletas = atletas if atletas is not None else []
 
 # Crear datos ficticios de usuarios y deportistas
-deportista1 = Deportista("Emma", "Wright", 25, 15, 20, 300, 300, 500, 72, 195, 195, 195)
-deportista2 = Deportista("Atleta2", "Martínez", 28, 19, 28, 230, 280, 480, 80, 175,170, 165)
-deportista3 = Deportista("Atleta3", "Gómez", 22, 18, 35, 280, 320, 520, 90, 185, 180, 175)
+deportista1 = Deportista("Emma", "Wright", 25, 15, 20, 300, 300, 72, 195, 195, 195)
+deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 320, 320, 90, 198, 198, 198)
+deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 280, 280, 90, 191, 191, 191)
+deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 90, 185, 180, 175)
+deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 320, 310, 90, 188, 188, 188)
+
+deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 520, 90, 185, 180, 175)
 
 atletas_data = [deportista1.__dict__, deportista2.__dict__, deportista3.__dict__]
 
-usuario1 = Usuario("Juan", "Pérez", "juanperez", "juanperez@example.com", "deportista", "password123", [deportista1.__dict__, deportista2.__dict__])
+usuario1 = Usuario("Juan", "Pérez", "juanperez", "juanperez@example.com", "deportista", "password123", [deportista1.__dict__, deportista2.__dict__, deportista4.__dict__, deportista5.__dict__, deportista6.__dict__])
 usuario2 = Usuario("María", "García", "mariagarcia", "mariagarcia@example.com", "entrenador", "pass456", [deportista3.__dict__])
 
 usuarios_data = [usuario1.__dict__, usuario2.__dict__]
@@ -75,7 +78,6 @@ juanperez_df = pd.DataFrame(juanperez_atletas)
 column_tooltips = {
     'v_pc_atletismo': 'Velocidad de Pico en Atletismo',
     'vam_atletismo': 'Velocidad Aeróbica Máxima en Atletismo',
-    'pmax': 'Potencia Máxima',
     'pc_ciclismo': 'Pico de Potencia en Ciclismo',
     'pam': 'Potencia Anaeróbica Máxima',
     'vc_natacion': 'Velocidad Crítica en Natación',
@@ -137,7 +139,7 @@ def importar_archivo(contents):
             speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
             speed_kmh = speed_m_s * 3.6
             watt_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Watts')
-            watt = int(watt_element.text) if watt_element is not None else None
+            watt = int(watt_element.text) if watt_element is not None else 0
 
             times.append(time)
             time_differences.append(int(time_difference))
@@ -635,9 +637,8 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     pc_ciclismo = atleta['pc_ciclismo']
                     PC_a = atleta['v_pc_atletismo']
                     VAM = atleta['vam_atletismo']
-                    pmax = atleta['pmax']
+                    pmax = atleta['pam']
                     PC_c = atleta['pc_ciclismo']
-                    PAM = atleta['pam']
                     if tipo_entrenamiento == 'aguas_abiertas':
                       FC_max = atleta['fc_max_natacion']
                     elif tipo_entrenamiento == 'ciclismo':
