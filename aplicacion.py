@@ -975,17 +975,17 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
               graficos.append(dcc.Graph(id='speed-zone-plot', figure=fig_speed))
 
             fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.1, subplot_titles=["Frecuencia Cardíaca", "Potencia", "Velocidad"])
-
-            # Añadir el trace para Frecuencia Cardíaca
-            fig.add_trace(go.Scatter(
-                x=datos_entrenamiento['Accumulated Time'],
-                y=datos_entrenamiento['Heart Rate'],
-                mode='lines',
-                name='Frecuencia Cardíaca',
-                text=datos_entrenamiento['Elapsed Time Str'],
-                hovertemplate='%{y} bpm<br>%{text}<extra></extra>',
-                showlegend=False,
-            ), row=1, col=1)
+            if datos_entrenamiento["Heart Rate"].isnull().all()!= True:
+                # Añadir el trace para Frecuencia Cardíaca
+                fig.add_trace(go.Scatter(
+                    x=datos_entrenamiento['Accumulated Time'],
+                    y=datos_entrenamiento['Heart Rate'],
+                    mode='lines',
+                    name='Frecuencia Cardíaca',
+                    text=datos_entrenamiento['Elapsed Time Str'],
+                    hovertemplate='%{y} bpm<br>%{text}<extra></extra>',
+                    showlegend=False,
+                ), row=1, col=1)
 
             # Añadir el trace para Potencia
             if (tipo_entrenamiento == 'ciclismo' or tipo_entrenamiento == 'correr') and not datos_entrenamiento["Watts"].isnull().all():
