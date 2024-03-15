@@ -580,7 +580,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
             else:
                 min_por_km_medio = None
             # Calcular el pulso medio y pulso máximo si hay datos de frecuencia cardíaca
-            if 'Heart Rate' in datos_entrenamiento.columns and datos_entrenamiento["Heart Rate"].isnan().all() != True:
+            if 'Heart Rate' in datos_entrenamiento.columns and datos_entrenamiento["Heart Rate"].isnull().all() != True:
                 pulso_medio = datos_entrenamiento['Heart Rate'].mean()
                 pulso_maximo = datos_entrenamiento['Heart Rate'].max()
             else:
@@ -588,7 +588,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                 pulso_maximo = None
 
             # Calcular la potencia media y potencia máxima si hay datos de potencia
-            if 'Watts' in datos_entrenamiento.columns and datos_entrenamiento["Watts"].isnan().all() != True:
+            if 'Watts' in datos_entrenamiento.columns and datos_entrenamiento["Watts"].isnull().all() != True:
                 potencia_media = datos_entrenamiento['Watts'].mean()
                 potencia_maxima = datos_entrenamiento['Watts'].max()
             else:
