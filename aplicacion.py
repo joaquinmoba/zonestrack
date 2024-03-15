@@ -23,15 +23,14 @@ import dash
 
 class Deportista:
     # Definición de la clase Deportista
-    def __init__(self, nombre, apellido, edad, v_pc_atletismo, vam_atletismo, pc_ciclismo, pam, vc_natacion, fc_max_natacion,fc_max_atletismo,fc_max_ciclismo):
+    def __init__(self, nombre, apellido, edad, pc_atletismo, vam_atletismo, pc_ciclismo, pam, fc_max_natacion,fc_max_atletismo,fc_max_ciclismo):
         self.nombre = nombre
         self.apellido = apellido
         self.edad = edad
-        self.v_pc_atletismo = v_pc_atletismo
+        self.v_pc_atletismo = pc_atletismo
         self.vam_atletismo = vam_atletismo
         self.pc_ciclismo = pc_ciclismo
         self.pam = pam
-        self.vc_natacion = vc_natacion
         self.fc_max_natacion = fc_max_natacion
         self.fc_max_atletismo = fc_max_atletismo
         self.fc_max_ciclismo = fc_max_ciclismo
@@ -48,11 +47,11 @@ class Usuario:
         self.atletas = atletas if atletas is not None else []
 
 # Crear datos ficticios de usuarios y deportistas
-deportista1 = Deportista("Emma", "Wright", 25, 15, 20, 300, 300, 72, 195, 195, 195)
-deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 320, 320, 90, 198, 198, 198)
-deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 280, 280, 90, 191, 191, 191)
-deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 90, 185, 180, 175)
-deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 320, 310, 90, 188, 188, 188)
+deportista1 = Deportista("Emma", "Wright", 25, 15, 20, 300, 300, 195, 195, 195)
+deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 320, 320, 198, 198, 198)
+deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 280, 280, 191, 191, 191)
+deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 185, 180, 175)
+deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 320, 310, 188, 188, 188)
 
 deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 90, 185, 180, 175)
 
@@ -76,11 +75,10 @@ juanperez_df = pd.DataFrame(juanperez_atletas)
 # Obtener las columnas disponibles para agregar
 
 column_tooltips = {
-    'v_pc_atletismo': 'Velocidad de Pico en Atletismo',
+    'pc_atletismo': 'Potencia crítica en Atletismo',
     'vam_atletismo': 'Velocidad Aeróbica Máxima en Atletismo',
-    'pc_ciclismo': 'Pico de Potencia en Ciclismo',
+    'pc_ciclismo': 'Potencia crítica en Ciclismo',
     'pam': 'Potencia Anaeróbica Máxima',
-    'vc_natacion': 'Velocidad Crítica en Natación',
     'fc_max_natacion': 'Frecuencia Cardíaca Máxima natación',
     'fc_max_ciclismo': 'Frecuencia Cardíaca Máxima ciclismo',
     'fc_max_atletismo': 'Frecuencia Cardíaca Máxima atletismo'
@@ -139,7 +137,7 @@ def importar_archivo(contents):
             speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
             speed_kmh = speed_m_s * 3.6
             watt_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Watts')
-            watt = int(watt_element.text) if watt_element is not None else 0
+            watt = int(watt_element.text) if watt_element is not None else None
 
             times.append(time)
             time_differences.append(int(time_difference))
@@ -306,7 +304,7 @@ def render_page_content(pathname):
             html.Div(id="tabla-zonas", children=[
                 dash_table.DataTable(
                     id='atletas-table',
-                    columns=[{'name': col, 'id': col, 'deletable': True, 'renamable': False} for col in juanperez_df.columns],
+                    columns=[{'name': col, 'id': col, 'deletable': False, 'renamable': False} for col in juanperez_df.columns],
                     data=juanperez_df.to_dict('records'),
                     editable=True,
                     row_deletable=True,
@@ -501,7 +499,7 @@ def update_juanperez_df(data, rows):
     return html.Div([
         dash_table.DataTable(
             id='atletas-table',
-            columns=[{'name': col, 'id': col, 'deletable': True, 'renamable': False} for col in juanperez_df.columns],
+            columns=[{'name': col, 'id': col, 'deletable': False, 'renamable': False} for col in juanperez_df.columns],
             data=juanperez_df.to_dict('records'),
             editable=True,
             row_deletable=True,
@@ -581,9 +579,8 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                 min_por_km_medio = tiempo_total / (distancia_total/1000) if distancia_total != 0 else 0
             else:
                 min_por_km_medio = None
-
             # Calcular el pulso medio y pulso máximo si hay datos de frecuencia cardíaca
-            if 'Heart Rate' in datos_entrenamiento.columns:
+            if 'Heart Rate' in datos_entrenamiento.columns and datos_entrenamiento["Heart Rate"].isnan().all() != True:
                 pulso_medio = datos_entrenamiento['Heart Rate'].mean()
                 pulso_maximo = datos_entrenamiento['Heart Rate'].max()
             else:
@@ -591,7 +588,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                 pulso_maximo = None
 
             # Calcular la potencia media y potencia máxima si hay datos de potencia
-            if 'Watts' in datos_entrenamiento.columns:
+            if 'Watts' in datos_entrenamiento.columns and datos_entrenamiento["Watts"].isnan().all() != True:
                 potencia_media = datos_entrenamiento['Watts'].mean()
                 potencia_maxima = datos_entrenamiento['Watts'].max()
             else:
@@ -636,9 +633,9 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     if tipo_entrenamiento == 'aguas_abiertas':
                       FC_max = int(atleta[8])
                     elif tipo_entrenamiento == 'ciclismo':
-                      FC_max = int(atleta[9])
-                    else:
                       FC_max = int(atleta[10])
+                    else:
+                      FC_max = int(atleta[9])
 
             if zonas_analisis == 3:
                 zonas = ['Z0', 'Z1', 'Z2', 'Z3', 'MAX']
