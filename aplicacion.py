@@ -17,6 +17,7 @@ import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import dash
+from fitparse import FitFile
 
 
 
@@ -93,109 +94,135 @@ def importar_archivo(contents):
 
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
+    if decoded.startswith(b'<?xml version="1.0" encoding="UTF-8"?>'):
+          with tempfile.NamedTemporaryFile(delete=False) as tmp:
+              tmp.write(decoded)
+              tmp.seek(0)
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp.write(decoded)
-        tmp.seek(0)
+              # Lee el archivo desde la ruta temporal en un ElementTree
+              tree = ET.parse(tmp.name)
+              root = tree.getroot()
 
-        # Lee el archivo desde la ruta temporal en un ElementTree
-        tree = ET.parse(tmp.name)
-        root = tree.getroot()
+              # Inicializar listas para almacenar los datos
 
-        # Inicializar listas para almacenar los datos
+              times = []
+              time_differences = []  # Lista para almacenar las diferencias de tiempo en segundos
+              distances = []
+              heart_rates = []
+              cadences = []
+              speeds = []
+              watts = []
 
-        times = []
-        time_differences = []  # Lista para almacenar las diferencias de tiempo en segundos
-        distances = []
-        heart_rates = []
-        cadences = []
-        speeds = []
-        watts = []
+              prev_time = None  # Variable para almacenar el tiempo anterior
+              prev_distance = None
 
-        prev_time = None  # Variable para almacenar el tiempo anterior
-        prev_distance = None
+              # Iterar a través de los trackpoints y extraer los datos
+              for trackpoint in root.findall('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint'):
+                  time = trackpoint.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Time').text
+                  current_time = datetime.datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                  if prev_time is not None:
+                      time_difference = (current_time - prev_time).total_seconds()
+                      time_difference = time_difference if time_difference < 30 else 1
+                  else:
+                      time_difference = 1
+                  distance_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}DistanceMeters')
+                  distance = float(distance_element.text) if distance_element is not None else 0
 
-        # Iterar a través de los trackpoints y extraer los datos
-        for trackpoint in root.findall('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint'):
-            time = trackpoint.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Time').text
-            current_time = datetime.datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
-            if prev_time is not None:
-                time_difference = (current_time - prev_time).total_seconds()
-                time_difference = time_difference if time_difference < 30 else 1
-            else:
-                time_difference = 1
-            distance_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}DistanceMeters')
-            distance = float(distance_element.text) if distance_element is not None else 0
+                  if prev_distance is not None:
+                      delta = (distance - prev_distance)
+                  else:
+                      delta = distance
+                  heart_rate_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}HeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value')
+                  heart_rate = int(heart_rate_element.text) if heart_rate_element is not None else None
+                  speed_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Speed')
+                  speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
+                  speed_kmh = speed_m_s * 3.6
+                  watt_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Watts')
+                  watt = int(watt_element.text) if watt_element is not None else 0
 
-            if prev_distance is not None:
-                delta = (distance - prev_distance)
-            else:
-                delta = distance
-            heart_rate_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}HeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value')
-            heart_rate = int(heart_rate_element.text) if heart_rate_element is not None else 0
-            speed_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Speed')
-            speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
-            speed_kmh = speed_m_s * 3.6
-            watt_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Watts')
-            watt = int(watt_element.text) if watt_element is not None else 0
+                  times.append(time)
+                  time_differences.append(int(time_difference))
+                  distances.append(distance)
+                  heart_rates.append(heart_rate)
+                  speeds.append(speed_kmh)
+                  watts.append(watt)
 
-            times.append(time)
-            time_differences.append(int(time_difference))
-            distances.append(distance)
-            heart_rates.append(heart_rate)
-            speeds.append(speed_kmh)
-            watts.append(watt)
+                  prev_distance = distance
+                  prev_time = current_time
+              data = {
+                  'Time': time_differences,
+                  'Distance': distances,
+                  'Heart Rate': heart_rates,
+                  'Speed': speeds,
+                  'Watts': watts
+              }
 
-            prev_distance = distance
-            prev_time = current_time
+    else:
+            # Si es un archivo FIT, procesar de manera diferente
+            fitfile = FitFile(BytesIO(decoded))
+            logger.debug("Objeto FitFile creado correctamente.")
 
-        # Crear un DataFrame de Pandas
-        data = {
-            'Time': time_differences,  # Usar las diferencias de tiempo en segundos
-            'Distance': distances,
-            'Heart Rate': heart_rates,
-            'Speed': speeds,
-            'Watts': watts
-        }
+            messages = fitfile.messages
 
-        df = pd.DataFrame(data)
+            times = []
+            time_differences = []
+            distances = []
+            heart_rates = []
+            speeds = []
+            watts = []
+
+            prev_time = None
+            prev_distance = None
+
+            for msg in messages:
+                if msg.name == 'record':
+                    record_data = msg.get_values()
+
+                    # Lógica de extracción de datos para FIT
+                    time = record_data.get('timestamp')
+                    if time is not None:
+                        current_time = time
+                        if prev_time is not None:
+                            time_difference = (current_time - prev_time).total_seconds()
+                            time_difference = time_difference if time_difference < 30 else 1
+                        else:
+                            time_difference = 1
+                    else:
+                        time_difference = 1
+
+                    distance = record_data.get('distance') if record_data.get('distance') is not None else 0
+                    heart_rate = record_data.get('heart_rate') if record_data.get('heart_rate') is not None else 0
+                    speed = record_data.get('speed') if record_data.get('speed') is not None else 0
+                    watt = record_data.get('power') if record_data.get('power') is not None else 0
+
+                    times.append(time)
+                    time_differences.append(int(time_difference))
+                    distances.append(distance)
+                    heart_rates.append(heart_rate)
+                    speeds.append(speed)
+                    watts.append(watt)
+
+                    prev_distance = distance
+                    prev_time = current_time
+
+            data = {
+                'Time': time_differences,
+                'Distance': distances,
+                'Heart Rate': heart_rates,
+                'Speed': speeds,
+                'Watts': watts
+            }
+
+    df = pd.DataFrame(data)
+
+    return df
 
         return df
 def format_duration(seconds):
     return str(datetime.timedelta(seconds=int(seconds)))
 def format_seconds(seconds):
     return str(datetime.timedelta(seconds=seconds))
-# Función para procesar el archivo TCX y obtener un resumen de laps
-def process_tcx_file(file_path):
-    tree = ET.parse(file_path)
-    root = tree.getroot()
 
-    laps_data = []
-    for lap in root.iter('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Lap'):
-        lap_data = {
-            'StartTime': lap.attrib['StartTime'],
-            'TotalTimeSeconds': float(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}TotalTimeSeconds').text),
-            'DistanceMeters': float(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}DistanceMeters').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}DistanceMeters') is not None else 0,
-            'MaximumSpeed': float(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumSpeed').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumSpeed') is not None else 0,
-            'Calories': int(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Calories').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Calories') is not None else 0,
-            'AverageHeartRateBpm': int(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AverageHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AverageHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value') is not None else 0,
-            'MaximumHeartRateBpm': int(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value') is not None else 0,
-            'Intensity': lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Intensity').text if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Intensity') is not None else '',
-            'Cadence': int(lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Cadence').text) if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Cadence') is not None else 0,
-            'TriggerMethod': lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}TriggerMethod').text if lap.find('{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}TriggerMethod') is not None else '',
-            'AverageSpeed': float(lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AvgSpeed').text) if lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AvgSpeed') is not None else 0,
-            'AverageWatts': float(lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Watts').text) if lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Watts') is not None else 0,
-            'MaxWatts': float(lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaxWatts').text) if lap.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaxWatts') is not None else 0
-        }
-        laps_data.append(lap_data)
-
-    # Crear DataFrame con los datos de los laps
-    laps_df = pd.DataFrame(laps_data)
-
-    # Crear resumen de laps
-    laps_summary = laps_df[['StartTime', 'TotalTimeSeconds', 'DistanceMeters', 'Calories', 'AverageHeartRateBpm', 'MaximumHeartRateBpm', 'Intensity', 'Cadence', 'TriggerMethod', 'AverageSpeed', 'AverageWatts', 'MaxWatts']]
-
-    return laps_summary
 
 
 
