@@ -18,6 +18,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import dash
 from fitparse import FitFile
+from io import BytesIO
 
 
 
@@ -160,7 +161,6 @@ def importar_archivo(contents):
     else:
             # Si es un archivo FIT, procesar de manera diferente
             fitfile = FitFile(BytesIO(decoded))
-            logger.debug("Objeto FitFile creado correctamente.")
 
             messages = fitfile.messages
 
