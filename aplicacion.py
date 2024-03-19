@@ -217,7 +217,7 @@ def importar_archivo(contents):
 
     return df
 
-        return df
+
 def format_duration(seconds):
     return str(datetime.timedelta(seconds=int(seconds)))
 def format_seconds(seconds):
