@@ -4,8 +4,6 @@ from dash import dcc, html, Input, Output, State, Dash, dash_table, callback
 import dash_bootstrap_components as dbc
 import re
 import plotly.express as px
-import dash_core_components as dcc
-import dash_html_components as html
 import datetime
 import xml.etree.ElementTree as ET
 import base64
@@ -134,7 +132,7 @@ def importar_archivo(contents):
                   else:
                       delta = distance
                   heart_rate_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}HeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value')
-                  heart_rate = int(heart_rate_element.text) if heart_rate_element is not None else None
+                  heart_rate = int(heart_rate_element.text) if heart_rate_element is not None else 0
                   speed_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Speed')
                   speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
                   speed_kmh = speed_m_s * 3.6
