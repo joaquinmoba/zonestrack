@@ -148,6 +148,7 @@ def importar_archivo(contents):
 
                   prev_distance = distance
                   prev_time = current_time
+                  
               data = {
                   'Time': time_differences,
                   'Distance': distances,
@@ -189,8 +190,13 @@ def importar_archivo(contents):
                         time_difference = 1
 
                     distance = record_data.get('distance') if record_data.get('distance') is not None else 0
+
+                    if prev_distance is not None:
+                      delta = (distance - prev_distance)
+                    else:
+                      delta = distance
                     heart_rate = record_data.get('heart_rate') if record_data.get('heart_rate') is not None else 0
-                    speed = record_data.get('speed') if record_data.get('speed') is not None else 0
+                    speed = record_data.get('speed') if record_data.get('speed') is not None else ((delta/time_difference * 3.6) if delta is not None else 0)
                     watt = record_data.get('power') if record_data.get('power') is not None else 0
 
                     times.append(time)
