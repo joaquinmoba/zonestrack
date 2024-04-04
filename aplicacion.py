@@ -762,39 +762,39 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
               children.append(html.H2("No hay datos de Potencia"))
 
             elif tipo_entrenamiento == 'ciclismo' :
-              datos_entrenamiento["Watts"].fillna(0)
-              # Cálculo de las zonas de potencia (análogo al cálculo de zonas de FC)
-              datos_entrenamiento["potencia_zona"] = pd.cut(datos_entrenamiento["Watts"], power_zones, labels=[str(i) for i in range(0,len(zonas))], include_lowest=True)
-              duracion_Pot = [0] * len(zonas)
-              datos_entrenamiento["potencia_zona"] = datos_entrenamiento["potencia_zona"].fillna(method='ffill')
+              if datos_entrenamiento["Watts"].isnull().all() != True:
+                  datos_entrenamiento["Watts"].fillna(0)
+                  datos_entrenamiento["potencia_zona"] = pd.cut(datos_entrenamiento["Watts"], power_zones, labels=[str(i) for i in range(0,len(zonas))], include_lowest=True)
+                  duracion_Pot = [0] * len(zonas)
+                  datos_entrenamiento["potencia_zona"] = datos_entrenamiento["potencia_zona"].fillna(method='ffill')
 
-              for i, row in datos_entrenamiento.iterrows():
-                  zona = int(row["potencia_zona"])
-                  duracion = row["Time"]
-                  duracion_Pot[zona] += duracion
-              tiempo_total_Pot = [str(datetime.timedelta(seconds=d)) if d != 0 else "" for d in duracion_Pot]
-              total_duration = sum(duracion_Pot)
-              porcentaje = [(d / total_duration) * 100 if total_duration != 0 else 0 for d in duracion_Pot]
+                  for i, row in datos_entrenamiento.iterrows():
+                      zona = int(row["potencia_zona"])
+                      duracion = row["Time"]
+                      duracion_Pot[zona] += duracion
+                  tiempo_total_Pot = [str(datetime.timedelta(seconds=d)) if d != 0 else "" for d in duracion_Pot]
+                  total_duration = sum(duracion_Pot)
+                  porcentaje = [(d / total_duration) * 100 if total_duration != 0 else 0 for d in duracion_Pot]
 
 
-              fig_watts = px.bar(x=zonas, y=duracion_Pot, text=tiempo_total_Pot)
-              fig_watts.update_traces(
-                  hovertemplate='%{text} segundos (%{customdata:.2f}%)',
-                  customdata=porcentaje,
-                  marker_color=paleta
-              )
-              fig_watts.update_layout(
+                  fig_watts = px.bar(x=zonas, y=duracion_Pot, text=tiempo_total_Pot)
+                  fig_watts.update_traces(
+                      hovertemplate='%{text} segundos (%{customdata:.2f}%)',
+                      customdata=porcentaje,
+                      marker_color=paleta
+                  )
+                  fig_watts.update_layout(
                       title='Duración en zonas de Potencia',
                       xaxis_title='Zonas de Potencia',
                       yaxis_title='Duración',
                       yaxis=dict(
                           tickformat="%H:%M:%S"
                       ),
-              )
-              zone_data = []
-              for i in range(len(zonas)):
-                  zone_data.append({
-                      'Zone': zonas[i],
+                  )
+                  zone_data = []
+                  for i in range(len(zonas)):
+                      zone_data.append({
+                          'Zone': zonas[i],
                           'Percentage Lower Bound': str(int(power_zones[i]/pmax*100))+"%" if i != 0 else "",
                           'Percentage Upper Bound': str(int(power_zones[i + 1]/pmax*100))+"%" if i < (len(fc_zones) - 2) else "",
                           'Lower Bound': int(power_zones[i]) if i != 0 else "",
@@ -802,42 +802,43 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                           'Time Spent': tiempo_total_Pot[i],
                           'Background Color': paleta[i]
                       })
-                  # Agregar el estilo condicional para el color de fondo
-                  table = dash_table.DataTable(
-                        columns=[
+                      # Agregar el estilo condicional para el color de fondo
+                      table = dash_table.DataTable(
+                          columns=[
                           {"name": "Zone", "id": "Zone"},
                           {"name": "% Lower Bound", "id": "Percentage Lower Bound"},
                           {"name": "% Upper Bound", "id": "Percentage Upper Bound"},
                           {"name": "Lower Bound", "id": "Lower Bound"},
                           {"name": "Upper Bound", "id": "Upper Bound"},
                           {"name": "Time Spent", "id": "Time Spent"}
-                  ],
-                  data=zone_data,
-                   style_header={
+                          ],
+                      data=zone_data,
+                       style_header={
                         'backgroundColor': 'white',
                         'fontWeight': 'bold',
                         'textAlign': 'center',
                         'whiteSpace': 'normal'
                     },
                     style_table={'height': '300px', 'width': '100%', 'overflowY': 'auto'},
-
-                  style_data_conditional=[
-                      {
-                          'if': {'row_index': i},
-                          'backgroundColor': paleta[i],
-                          'color': 'black' if paleta[i]!='green' else 'white'  # Color del texto en cada fila
-                      }
-                      for i in range(len(paleta))
-                  ],
-              )
-              tabla_div = html.Div(
+                      style_data_conditional=[
+                          {
+                              'if': {'row_index': i},
+                              'backgroundColor': paleta[i],
+                              'color': 'black' if paleta[i]!='green' else 'white'  # Color del texto en cada fila
+                          }
+                          for i in range(len(paleta))
+                      ],
+                  )
+                  tabla_div = html.Div(
                     children=[
                         html.H3("Tiempo en Zonas de Potencia"),
                         table
                     ]
-                )
-              tablas.append(tabla_div)
-              graficos.append(dcc.Graph(id='watts-zone-plot', figure=fig_watts))
+                  )
+                  tablas.append(tabla_div)
+                  #children.append(html.H3("Tiempo en Zonas de Potencia"))
+                  #children.append(table)
+                  graficos.append(dcc.Graph(id='watts-zone-plot', figure=fig_watts))
 
             elif tipo_entrenamiento == 'correr':
               if datos_entrenamiento["Watts"].isnull().all() != True:
