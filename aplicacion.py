@@ -662,11 +662,11 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     pmax = int(atleta[6])
                     PC_c = int(atleta[5])
                     if tipo_entrenamiento == 'aguas_abiertas':
-                      FC_max = int(atleta[8])
+                      FC_max = int(atleta[7])
                     elif tipo_entrenamiento == 'ciclismo':
-                      FC_max = int(atleta[10])
-                    else:
                       FC_max = int(atleta[9])
+                    else:
+                      FC_max = int(atleta[8])
 
             if zonas_analisis == 3:
                 zonas = ['Z0', 'Z1', 'Z2', 'Z3', 'MAX']
