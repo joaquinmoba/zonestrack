@@ -658,7 +658,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     # Extraer los valores de PC_a, VAM, pmax, PC_c, PAM y FC_max del atleta
                     PC_a = int(atleta[3])
                     VAM = float(atleta[4])
-                    PC_c = int(atleta[5])
+                    pmax = int(atleta[5])
 
                     if tipo_entrenamiento == 'aguas_abiertas':
                       FC_max = int(atleta[7])
