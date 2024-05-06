@@ -47,17 +47,16 @@ class Usuario:
         self.atletas = atletas if atletas is not None else []
 
 # Crear datos ficticios de usuarios y deportistas
-deportista1 = Deportista("Emma", "Wright", 25, 15, 20, 300, 300, 195, 195, 195)
-deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 320, 320, 198, 198, 198)
+deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 320, 360, 198, 198, 198)
 deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 280, 280, 191, 191, 191)
-deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 185, 180, 175)
-deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 320, 310, 188, 188, 188)
+deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 260, 155, 165, 170)
+deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 290, 310, 170, 176, 188)
 
 deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 185, 180, 175)
 
-atletas_data = [deportista1.__dict__, deportista2.__dict__, deportista3.__dict__]
+atletas_data = [ deportista2.__dict__, deportista3.__dict__]
 
-usuario1 = Usuario("Juan", "Pérez", "juanperez", "juanperez@example.com", "deportista", "password123", [deportista1.__dict__, deportista2.__dict__, deportista4.__dict__, deportista5.__dict__, deportista6.__dict__])
+usuario1 = Usuario("Juan", "Pérez", "juanperez", "juanperez@example.com", "deportista", "password123", [deportista2.__dict__, deportista4.__dict__, deportista5.__dict__, deportista6.__dict__])
 usuario2 = Usuario("María", "García", "mariagarcia", "mariagarcia@example.com", "entrenador", "pass456", [deportista3.__dict__])
 
 usuarios_data = [usuario1.__dict__, usuario2.__dict__]
