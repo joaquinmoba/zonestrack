@@ -49,8 +49,8 @@ class Usuario:
 # Crear datos ficticios de usuarios y deportistas
 deportista2 = Deportista("Joaquín", "Mojica", 21, 20, 20.5, 360, 320, 198, 198, 198)
 deportista4 = Deportista("Gerard", "", 27, 18, 19.5, 290, 260, 191, 191, 191)
-deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  260, 240, 155, 165, 170)
-deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 310, 290, 170, 176, 188)
+deportista5 = Deportista("Álvaro", "Rancé", 49, 18, 35,  220, 210, 155, 170, 165)
+deportista6 = Deportista("Genis", "Grau", 29, 21, 21, 310, 290, 170, 188, 176)
 
 deportista3 = Deportista("Genis", "Grau", 22, 18, 35, 280, 320, 185, 180, 175)
 
@@ -658,7 +658,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     # Extraer los valores de PC_a, VAM, pmax, PC_c, PAM y FC_max del atleta
                     PC_a = int(atleta[3])
                     VAM = float(atleta[4])
-                    pmax = int(atleta[6])
+                    pmax = int(atleta[5])
 
                     if tipo_entrenamiento == 'aguas_abiertas':
                       FC_max = int(atleta[7])
