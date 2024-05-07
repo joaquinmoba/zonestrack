@@ -133,7 +133,7 @@ def importar_archivo(contents):
                   heart_rate_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}HeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value')
                   heart_rate = int(heart_rate_element.text) if heart_rate_element is not None else 0
                   speed_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Speed')
-                  speed_m_s = float(speed_element.text) if speed_element is not None else (delta/time_difference if delta is not None else 0)
+                  speed_m_s = (delta/time_difference if delta is not None else 0)
                   speed_kmh = speed_m_s * 3.6
                   watt_element = trackpoint.find('.//{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Watts')
                   watt = int(watt_element.text) if watt_element is not None else 0
