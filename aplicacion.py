@@ -195,7 +195,7 @@ def importar_archivo(contents):
                     else:
                       delta = distance
                     heart_rate = record_data.get('heart_rate') if record_data.get('heart_rate') is not None else 0
-                    speed = record_data.get('speed') if record_data.get('speed') is not None else ((delta/time_difference * 3.6) if delta is not None else 0)
+                    speed = ((delta/time_difference * 3.6) if delta is not None else 0)
                     watt = record_data.get('power') if record_data.get('power') is not None else 0
 
                     times.append(time)
