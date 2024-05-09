@@ -1031,14 +1031,25 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                 ), row=2, col=1)
 
             # Añadir los traces para Velocidad
-            if (tipo_entrenamiento == 'correr' or tipo_entrenamiento == 'correr') and not datos_entrenamiento["Speed"].isnull().all():
-                fig.add_trace(go.Scatter(
+            if (tipo_entrenamiento == 'correr' or tipo_entrenamiento == 'ciclismo') and not datos_entrenamiento["Speed"].isnull().all():
+                if (tipo_entrenamiento == 'correr'):
+                    fig.add_trace(go.Scatter(
                     x=datos_entrenamiento['Accumulated Time'],
                     y=datos_entrenamiento['Speed'],
                     mode='lines',
                     name='Velocidad',
                     text=[str(datetime.timedelta(seconds=int(3600/velocidad))) if velocidad != 0 else "" for velocidad in datos_entrenamiento["Speed"]],
                     hovertemplate='%{text} Min/km',
+                    showlegend=False,
+                    ), row=3, col=1)
+                else:
+                    fig.add_trace(go.Scatter(
+                    x=datos_entrenamiento['Accumulated Time'],
+                    y=datos_entrenamiento['Speed'],
+                    mode='lines',
+                    name='Velocidad',
+                    text=[str(velocidad) for velocidad in datos_entrenamiento["Speed"]],
+                    hovertemplate='%{text} km/h',
                     showlegend=False,
                     ), row=3, col=1)
 
@@ -1081,23 +1092,26 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
 
                     min_speed = max(min(datos_entrenamiento['Speed']) - 2, 0)
                     max_speed = max(datos_entrenamiento['Speed']) + 1 if speed_zones[-2] < (max(datos_entrenamiento['Speed']) + 1) else speed_zones[-2]
-                    shapes_velocidad.append({
-                        'type': 'rect',
-                        'x0': min(datos_entrenamiento['Accumulated Time']),
-                        'y0': speed_zones[i],
-                        'x1': max(datos_entrenamiento['Accumulated Time']),
-                        'y1': speed_zones[i+1],
-                        'fillcolor': color,
-                        'opacity': 0.5,
-                        'layer': 'below',
-                        'line_width': 0,
-                    })
+                    if tipo_entrenamiento == 'correr':
+                        shapes_velocidad.append({
+                            'type': 'rect',
+                            'x0': min(datos_entrenamiento['Accumulated Time']),
+                            'y0': speed_zones[i],
+                            'x1': max(datos_entrenamiento['Accumulated Time']),
+                            'y1': speed_zones[i+1],
+                            'fillcolor': color,
+                            'opacity': 0.5,
+                            'layer': 'below',
+                            'line_width': 0,
+                        })
 
             # Actualizar las etiquetas de los ejes y rango de la y-axis
             fig.update_yaxes(title_text="bpm", range=[min_fc, max_fc], row=1, col=1)
             fig.update_yaxes(title_text="Watts", range=[min_power, max_power], row=2, col=1)
-            fig.update_yaxes(title_text="min/km", range=[min_speed, max_speed], row=3, col=1)
-
+            if tipo_entrenamiento == 'correr':
+                fig.update_yaxes(title_text="min/km", range=[min_speed, max_speed], row=3, col=1)
+            elif tipo_entrenamiento == 'ciclismo':
+                fig.update_yaxes(title_text="km/h", range=[min_speed, max_speed], row=3, col=1)
 
 
             # Añadir shapes a los gráficos
