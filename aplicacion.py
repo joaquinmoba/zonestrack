@@ -1048,7 +1048,7 @@ def update_zone_plots2(contents, selected_atleta, tipo_entrenamiento, zonas_anal
                     y=datos_entrenamiento['Speed'],
                     mode='lines',
                     name='Velocidad',
-                    text=[str(velocidad) for velocidad in datos_entrenamiento["Speed"]],
+                    text=[str(round(float(velocidad),2)) for velocidad in datos_entrenamiento["Speed"]],
                     hovertemplate='%{text} km/h',
                     showlegend=False,
                     ), row=3, col=1)
